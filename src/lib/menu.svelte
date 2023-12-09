@@ -144,18 +144,48 @@ onMount(() => {
 })
 </script>
 
-<div class="menu" bind:this={moduleSelf} style="--theme-bg: {themeColorBg}; --theme-text: {themeColorText}">
-  <div class="drag-handle">
-    <p>drag me</p>
-  </div>
+<div
+  class="menu"
+  bind:this={moduleSelf}
+  style="--theme-bg: {themeColorBg}; --theme-text: {themeColorText}"
+>
+  <title>
+    <span class="drag-handle"></span>
+    <p>Menu</p>
+  </title>
 </div>
 
 <style>
 .drag-handle {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
   overflow: hidden;
-  position: relative;
+  line-height: 5px;
+  padding: 3px 4px;
+  cursor: move;
+  vertical-align: middle;
+  font-size: 12px;
+  font-family: sans-serif;
+  letter-spacing: 2px;
+  color: var(--drag-text);
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+.drag-handle::after {
+  content: ".. .. ..";
+}
+
+title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
   width: 100%;
-  cursor: grab;
 }
 
 /**
@@ -178,6 +208,6 @@ should be placed in the right middle of the window
   font-family: sans-serif;
   padding: 10px;
   border-radius: 0 8px 8px 8px;
-  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
 }
 </style>
