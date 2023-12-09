@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "fp-ts": "^2.16.1",
-    "rxjs": "^7.8.1",
-    "svelvet": "^9.0.0"
+    "litegraph.js": "^0.7.14",
+    "rxjs": "^7.8.1"
   }
 }

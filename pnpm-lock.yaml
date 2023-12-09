@@ -8,6 +8,9 @@ dependencies:
   fp-ts:
     specifier: ^2.16.1
     version: 2.16.1
+  litegraph.js:
+    specifier: ^0.7.14
+    version: 0.7.14
   rxjs:
     specifier: ^7.8.1
     version: 7.8.1
@@ -763,6 +766,10 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /litegraph.js@0.7.14:
+    resolution: {integrity: sha512-xVC0a/D3uLZkpdV/HxyrruDIWM0vMOoIhgaUQXYymQ8pKgbeQZKR0OfuI0c7IpQxC+M/uoc9BRDl2Fm0Q3bW0w==}
+    dev: false
 
   /locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
