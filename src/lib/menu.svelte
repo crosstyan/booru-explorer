@@ -9,8 +9,8 @@ interface Position {
   y: number
 }
 
-const MenuPositionStorageKey = "App.MenuPosition"
-const MenuPositionDragClassName = "app-menu-manual-pos"
+export const MenuPositionStorageKey = "App.MenuPosition"
+export const MenuPositionDragClassName = "app-menu-manual-pos"
 
 export let themeColorBg: string = "#353535"
 export let themeColorText: string = "#ffffff"
@@ -168,7 +168,7 @@ should be placed in the right middle of the window
   top: 35%;
   right: 0;
   font-size: 15px;
-  text-align: center;
+  text-align: left;
   z-index: 999;
   display: flex;
   flex-direction: column;

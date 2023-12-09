@@ -13,9 +13,10 @@ import Menu from "./lib/menu.svelte"
 function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
   const { width, height } = canvas_el.getBoundingClientRect()
   const scale = Math.max(window.devicePixelRatio, 1)
-  canvas_el.width = width
-  canvas_el.height = height
-  // canvas_el.getContext("2d")?.scale(scale, scale)
+  // trick to avoid blurriness
+  canvas_el.width = Math.round(width * scale)
+  canvas_el.height = Math.round(height * scale)
+  canvas_el.getContext("2d")?.scale(scale, scale)
   lg_canvas.draw(true, true)
 }
 
@@ -39,6 +40,33 @@ onMount(() => {
   resizeCanvas(canvasEl, lg_canvas)
   window.addEventListener("resize", () => resizeCanvas(canvasEl, lg_canvas))
 
+  function renderInfo(
+    this: LGraphCanvas,
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+  ) {
+    x = x || 10
+    y = y || this.canvas.offsetHeight - 80
+
+    ctx.save()
+    ctx.translate(x, y)
+
+    ctx.font = "10px Arial"
+    ctx.fillStyle = "#888"
+    ctx.textAlign = "left"
+    if (graph) {
+      ctx.fillText("T: " + this.graph.globaltime.toFixed(2) + "s", 5, 13 * 1)
+      ctx.fillText("I: " + this.graph.iteration, 5, 13 * 2)
+      ctx.fillText("FPS:" + this.fps.toFixed(2), 5, 13 * 5)
+    } else {
+      ctx.fillText("No graph selected", 5, 13 * 1)
+    }
+    ctx.restore()
+  }
+
+  lg_canvas.renderInfo = renderInfo
+
   ExampleNode.register()
   const node = LiteGraph.createNode(ExampleNode.type) as ExampleNode
   node.pos = [200, 200]
@@ -48,7 +76,7 @@ onMount(() => {
 
 <div id="wrapper">
   <main id="main-main">
-  <Menu savePos={false}/>
+    <Menu savePos={true} />
   </main>
 </div>
 
