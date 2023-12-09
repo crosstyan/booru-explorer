@@ -8,12 +8,12 @@
   import { LGraph, LGraphCanvas, LiteGraph } from "litegraph.js"
 
   // https://github.com/comfyanonymous/ComfyUI/blob/97015b6b383718bdc65cb617e3050069a156679d/web/scripts/app.js#L1325-L1333
-  function resizeCanvas(el:HTMLCanvasElement, LGCanvas: LGraphCanvas){
-    const { width, height } = el.getBoundingClientRect()
-    el.width = width
-    el.height = height
-    LGCanvas.resize(width, height)
-    LGCanvas.draw(true, true)
+  function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
+    const { width, height } = canvas_el.getBoundingClientRect()
+    canvas_el.width = width
+    canvas_el.height = height
+    lg_canvas.resize(width, height)
+    lg_canvas.draw(true, true)
   }
 
   onMount(() => {
@@ -27,19 +27,18 @@
     canvasEl.style.height = "100%"
     main.appendChild(canvasEl)
     const graph = new LGraph()
-    const canvas = new LGraphCanvas(canvasEl as HTMLCanvasElement, graph)
+    const lg_canvas = new LGraphCanvas(canvasEl, graph)
     graph.start()
     // @ts-ignore assert such a property exists
-		LiteGraph.release_link_on_empty_shows_menu = true 
+    LiteGraph.release_link_on_empty_shows_menu = true
     // @ts-ignore assert such a property exists
-		LiteGraph.alt_drag_do_clone_nodes = true
-    resizeCanvas(canvasEl as HTMLCanvasElement, canvas)
-    window.addEventListener("resize", () => resizeCanvas(canvasEl as HTMLCanvasElement, canvas))
+    LiteGraph.alt_drag_do_clone_nodes = true
+    resizeCanvas(canvasEl, lg_canvas)
+    window.addEventListener("resize", () => resizeCanvas(canvasEl, lg_canvas))
   })
 </script>
 
-<main id="main-main">
-</main>
+<main id="main-main"></main>
 
 <style>
   #main-main {
