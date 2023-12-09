@@ -12,9 +12,10 @@ import Menu from "./lib/menu.svelte"
 // https://github.com/comfyanonymous/ComfyUI/blob/97015b6b383718bdc65cb617e3050069a156679d/web/scripts/app.js#L1325-L1333
 function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
   const { width, height } = canvas_el.getBoundingClientRect()
+  const scale = Math.max(window.devicePixelRatio, 1)
   canvas_el.width = width
   canvas_el.height = height
-  lg_canvas.resize(width, height)
+  // canvas_el.getContext("2d")?.scale(scale, scale)
   lg_canvas.draw(true, true)
 }
 
@@ -47,7 +48,7 @@ onMount(() => {
 
 <div id="wrapper">
   <main id="main-main">
-  <Menu />
+  <Menu savePos={false}/>
   </main>
 </div>
 
