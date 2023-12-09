@@ -7,6 +7,7 @@ import { onMount } from "svelte"
 import { assertDefined } from "./utils/assert"
 import { LGraph, LGraphCanvas, LiteGraph, LGraphNode } from "litegraph.js"
 import ExampleNode from "./node/example"
+import Menu from "./lib/menu.svelte"
 
 // https://github.com/comfyanonymous/ComfyUI/blob/97015b6b383718bdc65cb617e3050069a156679d/web/scripts/app.js#L1325-L1333
 function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
@@ -17,8 +18,6 @@ function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
   lg_canvas.draw(true, true)
 }
 
-// https://github.com/comfyanonymous/ComfyUI/blob/eccc9e64a631bb7ec02d61dbc6bf6c3ffefe96e4/web/scripts/ui.js#L610-L793
-// I could certainly improve this
 onMount(() => {
   const main = document.getElementById("main-main")
   assertDefined(main)
@@ -28,7 +27,7 @@ onMount(() => {
   canvasEl.tabIndex = 1
   canvasEl.style.width = "100%"
   canvasEl.style.height = "100%"
-  main.appendChild(canvasEl)
+  main.prepend(canvasEl)
   const graph = new LGraph()
   const lg_canvas = new LGraphCanvas(canvasEl, graph)
   graph.start()
@@ -46,9 +45,19 @@ onMount(() => {
 })
 </script>
 
-<main id="main-main"></main>
+<div id="wrapper">
+  <main id="main-main">
+  <Menu />
+  </main>
+</div>
 
 <style>
+#wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 #main-main {
   width: 100%;
   height: 100%;
