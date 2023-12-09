@@ -1,0 +1,27 @@
+{
+  "name": "dan-artists-browser",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "@tsconfig/svelte": "^5.0.2",
+    "svelte": "^4.2.3",
+    "svelte-check": "^3.6.0",
+    "svelte-language-server": "^0.16.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "fp-ts": "^2.16.1",
+    "rxjs": "^7.8.1",
+    "svelvet": "^9.0.0"
+  }
+}
