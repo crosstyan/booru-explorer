@@ -1,17 +1,17 @@
 import { isLeft, isRight, left, right, asUnit } from "fp-ts/Either"
 import type { Either, Left, Right } from "fp-ts/Either"
 import uFuzzy from "@leeoniya/ufuzzy"
-import { E, isErrorCode } from "./errors"
+import { E, ListAllMethod, isErrorCode } from "./errors"
 import { extractMsg, hasCode, hasMessage, isEither } from "./utils"
 import type { RpcError, Result } from "./errors"
 
 
-interface RegisterOptions {
+export interface RegisterOptions {
   overwriteStringIndex: boolean
   overwriteNumberIndex: boolean
 }
 
-class FnTable {
+export class FnTable {
   private strMap: Record<string, Function> = {}
   private numStrMap: Record<number, string> = {}
   private uf: uFuzzy
@@ -19,12 +19,14 @@ class FnTable {
     this.strMap = {}
     this.numStrMap = {}
     this.uf = new uFuzzy()
+
+    this.register("listFns", ListAllMethod, this.listFns)
   }
 
   public register(
     fnStringIndex: string,
     fnNumberIndex: number,
-    fn: Function, option: Partial<RegisterOptions>): Result<void> {
+    fn: Function, option: Partial<RegisterOptions> = {}): Result<void> {
     let defaultOption: RegisterOptions = {
       overwriteStringIndex: false,
       overwriteNumberIndex: false,

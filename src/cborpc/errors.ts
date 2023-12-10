@@ -58,6 +58,8 @@ export type RpcError = {
 
 export type Result<T> = Either<RpcError, T>
 
+export const ListAllMethod = 0x69
+
 // a magic map for void return
 export const VoidOk = { 0: 1 } as const
 
