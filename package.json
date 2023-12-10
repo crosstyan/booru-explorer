@@ -27,6 +27,7 @@
     "fp-ts": "^2.16.1",
     "litegraph.js": "^0.7.14",
     "reconnecting-websocket": "^4.4.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tslog": "^4.9.2"
   }
 }

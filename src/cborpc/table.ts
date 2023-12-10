@@ -1,9 +1,9 @@
 import { isLeft, isRight, left, right, asUnit } from "fp-ts/Either"
 import type { Either, Left, Right } from "fp-ts/Either"
 import uFuzzy from "@leeoniya/ufuzzy"
-import * as E from "./errors"
+import { E, isErrorCode } from "./errors"
 import { extractMsg, hasCode, hasMessage, isEither } from "./utils"
-import type { RpcError, Result, Unit } from "./errors"
+import type { RpcError, Result } from "./errors"
 
 
 interface RegisterOptions {
@@ -127,7 +127,7 @@ class FnTable {
           } else {
             const l = inner.left
             let err: RpcError = {
-              code: hasCode(l) ? l.code : E.RuntimeErrors,
+              code: hasCode(l) && isErrorCode(l.code) ? l.code : E.RuntimeErrors,
               message: hasMessage(l) ? l.message : null,
               extra: l,
             }
