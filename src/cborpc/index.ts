@@ -1,2 +1,2 @@
-import { CborRpc } from './stream'
-export default CborRpc
+import { CborRpcActor } from './stream'
+export default CborRpcActor

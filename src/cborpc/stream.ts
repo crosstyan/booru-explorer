@@ -119,7 +119,7 @@ function encodeResult<T>(result: ResultMessage<T>, throwBothNull: boolean = fals
   return data
 }
 
-export class CborRpc {
+export class CborRpcActor {
   private ws: RWebSocket
   private subject: Subject<WsData>
   private callObs: Observable<CallMessage>
@@ -185,10 +185,14 @@ export class CborRpc {
     })
   }
 
-  // https://www.totaltypescript.com/typescript-5-2-new-keyword-using
-  public [Symbol.dispose]() {
+  public close(){
     this.sub?.unsubscribe()
     this.ws.close()
+  }
+
+  // https://www.totaltypescript.com/typescript-5-2-new-keyword-using
+  public [Symbol.dispose]() {
+    this.close()
   }
 }
 
