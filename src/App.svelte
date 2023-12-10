@@ -10,6 +10,7 @@ import pino from "pino"
 import CborRpcActor from "./cborpc"
 import ExampleNode from "./node/example"
 import Menu from "./lib/menu.svelte"
+import { right } from "fp-ts/lib/Either"
 
 const logger = pino()
 let rpc: CborRpcActor | null = null
@@ -81,6 +82,15 @@ onMount(() => {
   logger.info("Connecting to", url)
   rpc = new CborRpcActor(url)
   rpc.table.register("log", 0x01, (...args: any[]) => console.log(...args))
+  rpc.table.register("createNode", 0x02, (type: string) => {
+    const node = LiteGraph.createNode(type)
+    graph.add(node)
+    return node.id
+  })
+  rpc.table.register("eval", 0x99, (code: string) => {
+    return eval(code)
+  })
+  rpc.table.register("result", 0x03, () => right("ok"))
 })
 
 onDestroy(() => {

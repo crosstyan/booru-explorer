@@ -1,9 +1,10 @@
 import { isLeft, isRight, left, right, asUnit } from "fp-ts/Either"
 import uFuzzy from "@leeoniya/ufuzzy"
 import { E, ListAllMethod, isErrorCode } from "./errors"
-import { extractMsg, hasCode, hasMessage, isEither } from "./utils"
+import { extractMsg, extractStackTrace, hasCode, hasMessage, isEither, isOption } from "./utils"
 import type { RpcError, Result } from "./errors"
 import pino from "pino"
+import { isSome } from "fp-ts/lib/Option"
 
 
 export interface RegisterOptions {
@@ -51,7 +52,7 @@ export class FnTable {
 
     this.numStrMap[fnNumberIndex] = fnStringIndex
 
-    return asUnit(right({}))
+    return asUnit(right(null))
   }
 
   public unregister(fnIndex: string | number): Result<void> {
@@ -77,7 +78,7 @@ export class FnTable {
     } else {
       throw new Error("invalid fnIndex type")
     }
-    return asUnit(right({}))
+    return asUnit(right(null))
   }
 
   public async call(fnIndex: string | number, args: any[]): Promise<Result<any>> {
@@ -92,8 +93,6 @@ export class FnTable {
       if (fn === undefined) {
         const haystack = Object.keys(this.strMap)
         const [idxs, info, order] = this.uf.search(haystack, fnIndex, 5, 1e3)
-        this.logger.debug({ fnIndex, haystack }, "search haystack")
-        this.logger.debug({ idxs, info, order }, "search result")
         if (idxs != null && idxs.length > 0) {
           const name = haystack[idxs[0]]
           return left({
@@ -121,12 +120,18 @@ export class FnTable {
           message: hasMessage(result.left) ? result.left.message : null,
           extra: result.left,
         })
+      } else if (isOption(result)) {
+        return isSome(result) ? right(result.value) : left({
+          code: E.OptionalNull,
+          message: null,
+        })
       }
       return right(result)
     } catch (e) {
       const err: RpcError = {
         code: E.RuntimeErrors,
         message: extractMsg(e),
+        extra: e,
       }
       return left(err)
     }

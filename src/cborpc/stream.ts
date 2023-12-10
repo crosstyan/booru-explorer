@@ -18,14 +18,22 @@ type CallMessage = {
   params: any[]
 }
 
-function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
+function decodeCallMessage(data: ArrayBuffer): Result<CallMessage> {
   const res = CBOR.decode(data)
 
   if (res.length < 4) {
     const err: RpcError = {
       code: E.BadLength,
+      extra: {
+        data,
+      }
     }
     return left(err)
+  }
+
+  const extra = {
+    data,
+    res
   }
 
   const [magic, msg_id, method, params] = res
@@ -33,6 +41,16 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
     const err: RpcError = {
       code: E.BadType,
       message: "magic number is not a number",
+      extra,
+    }
+    return left(err)
+  }
+
+  if (magic !== MagicNumbers.request) {
+    const err: RpcError = {
+      code: E.BadMagicNumber,
+      message: `magic number ${magic} is not ${MagicNumbers.request}`,
+      extra,
     }
     return left(err)
   }
@@ -42,6 +60,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
     const err: RpcError = {
       code: E.BadMagicNumber,
       message: `magic number ${magic} is not in ${MagicNumbers}`,
+      extra,
     }
     return left(err)
   }
@@ -50,6 +69,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
     const err: RpcError = {
       code: E.BadType,
       message: "msg_id is not a number",
+      extra,
     }
     return left(err)
   }
@@ -59,6 +79,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
     const err: RpcError = {
       code: E.BadType,
       message: "method is not a string or number",
+      extra,
     }
     return left(err)
   }
@@ -67,6 +88,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
     const err: RpcError = {
       code: E.BadType,
       message: "params is not an array",
+      extra,
     }
     return left(err)
   }
@@ -148,11 +170,13 @@ export class CborRpcActor {
 
     this.callObs = this.subject.pipe(
       OP.filter((data: WsData): data is ArrayBuffer => data instanceof ArrayBuffer),
-      OP.map((data: ArrayBuffer) => decodeRaw(data)),
+      OP.map((data: ArrayBuffer) => decodeCallMessage(data)),
       OP.map((result: Result<CallMessage>) => {
         if (isLeft(result)) {
-          const errorStr = StringError[result.left.code]
-          this.logger.error(`decode error`, errorStr)
+          this.logger.error(`decode error`, {
+            error: result.left,
+            codeStr: StringError[result.left.code],
+          })
           return null
         }
         return result.right
@@ -165,9 +189,10 @@ export class CborRpcActor {
       this.table.call(msg.method, msg.params)
         .then((result) => {
           if (isLeft(result)) {
-            this.logger.error(`call error`, result.left)
             if (result.left.extra) {
-              this.logger.error(`call error extra`, result.left.extra)
+              this.logger.error(result.left.extra)
+            } else {
+              this.logger.error(`call error`, result.left)
             }
             const data = encodeResult({
               msg_id: msg.msg_id,
@@ -185,7 +210,7 @@ export class CborRpcActor {
     })
   }
 
-  public close(){
+  public close() {
     this.sub?.unsubscribe()
     this.ws.close()
   }

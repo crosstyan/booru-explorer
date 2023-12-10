@@ -18,6 +18,7 @@ const BadLength = 0x22
 const BadCBOR = 0x23
 
 const InvalidMethod = 0x40
+const OptionalNull = 0x41
 
 const DuplicateStringIndex = 0x31
 const DuplicateNumberIndex = 0x32
@@ -29,6 +30,7 @@ export const E = {
   BadLength,
   BadCBOR,
   InvalidMethod,
+  OptionalNull,
   DuplicateStringIndex,
   DuplicateNumberIndex,
 } as const
@@ -42,6 +44,7 @@ export const StringError: Record<ErrorCodeLiteral, string> = {
   [BadLength]: "bad length",
   [BadCBOR]: "bad cbor",
   [InvalidMethod]: "invalid method",
+  [OptionalNull]: "optional null",
   [DuplicateStringIndex]: "duplicate string index",
   [DuplicateNumberIndex]: "duplicate number index",
 } as const
