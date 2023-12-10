@@ -3,11 +3,11 @@ import { isLeft, isRight, left, right } from 'fp-ts/Either'
 import { Observable, Subject, Subscription } from "rxjs"
 import * as OP from "rxjs/operators"
 import type { Either, Left, Right } from 'fp-ts/Either'
-import CBOR from "cbor-redux"
+import { CBOR } from "cbor-redux"
 import { VoidOk, type Result, StringError } from "./errors"
 import { E, MagicNumbers } from "./errors"
 import type { RpcError } from "./errors"
-import { Logger, type ILogObj } from "tslog"
+import pino from "pino"
 import { FnTable } from "./table"
 
 export type WsData = string | Blob | ArrayBuffer
@@ -119,19 +119,19 @@ function encodeResult<T>(result: ResultMessage<T>, throwBothNull: boolean = fals
   return data
 }
 
-class CborRpc {
+export class CborRpc {
   private ws: RWebSocket
   private subject: Subject<WsData>
   private callObs: Observable<CallMessage>
   private sub: Subscription | undefined
-  private logger: Logger<ILogObj>
+  private logger: ReturnType<typeof pino>
   public table: FnTable
 
   constructor(url: UrlProvider) {
     this.ws = new RWebSocket(url)
     this.ws.binaryType = "arraybuffer"
     this.subject = new Subject()
-    this.logger = new Logger({ name: "CborRpc" })
+    this.logger = pino()
     this.table = new FnTable()
 
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/message_event

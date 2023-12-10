@@ -3,11 +3,15 @@
 // https://github.com/jagenjo/litegraph.js/blob/master/guides/README.md
 // https://observablehq.com/@jerdak/litegraph-example
 // https://github.com/jagenjo/litegraph.js/tree/master/guides#integration
-import { onMount } from "svelte"
+import { onMount, onDestroy } from "svelte"
 import { assertDefined } from "./utils/assert"
 import { LGraph, LGraphCanvas, LiteGraph, LGraphNode } from "litegraph.js"
+import pino from "pino"
+import CborRpc from "./cborpc"
 import ExampleNode from "./node/example"
 import Menu from "./lib/menu.svelte"
+
+const logger = pino()
 
 // https://github.com/comfyanonymous/ComfyUI/blob/97015b6b383718bdc65cb617e3050069a156679d/web/scripts/app.js#L1325-L1333
 function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
@@ -71,6 +75,11 @@ onMount(() => {
   const node = LiteGraph.createNode(ExampleNode.type) as ExampleNode
   node.pos = [200, 200]
   graph.add(node)
+
+  const url = import.meta.env.VITE_WS_ENDPOINT
+  logger.info("Connecting to", url)
+  const rpc = new CborRpc(url)
+  rpc.table.register("log", 0x01, (...args: any[]) => console.log(...args))
 })
 </script>
 

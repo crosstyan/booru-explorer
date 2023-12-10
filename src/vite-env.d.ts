@@ -2,8 +2,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly WS_ENDPOINT: string
-  readonly QUERY_API_ENDPOINT: string
+  readonly VITE_WS_ENDPOINT: string
+  readonly VITE_QUERY_API_ENDPOINT: string
 }
 
 interface ImportMeta {
