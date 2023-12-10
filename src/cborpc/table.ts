@@ -80,68 +80,43 @@ export class FnTable {
 
   public async call(fnIndex: string | number, args: any[]): Promise<Result<any>> {
     let fn: Function | undefined
+    let fnStrIndex: string | undefined
 
-    if (typeof fnIndex === "number") {
-      const fnStrIndex = this.numStrMap[fnIndex]
-      if (fnStrIndex === undefined) {
-        const err: RpcError = {
-          code: E.InvalidMethod
-        }
-        return left(err)
-      }
-      fn = this.strMap[fnStrIndex]
-    } else if (typeof fnIndex === "string") {
+    if (typeof fnIndex === 'number') {
+      fnStrIndex = this.numStrMap[fnIndex]
+      fn = fnStrIndex !== undefined ? this.strMap[fnStrIndex] : undefined
+    } else if (typeof fnIndex === 'string') {
       fn = this.strMap[fnIndex]
       if (fn === undefined) {
-        const [idxs, info, order] = this.uf.search(Object.keys(this.strMap), fnIndex)
+        const [idxs] = this.uf.search(Object.keys(this.strMap), fnIndex)
         if (idxs != null && idxs.length > 0) {
-          const err = {
+          return left({
             code: E.InvalidMethod,
             message: `function ${fnIndex} not found, did you mean ${idxs[0]}?`,
-          }
-          return left(err)
-        } else {
-          const err: RpcError = {
-            code: E.InvalidMethod
-          }
-          return left(err)
+          })
         }
       }
     } else {
-      throw new Error("invalid fnIndex type")
+      return left({
+        code: E.InvalidMethod,
+        message: "bad method index type",
+      })
+    }
+
+    if (fn === undefined) {
+      return left({ code: E.InvalidMethod })
     }
 
     try {
-
-      const result = fn(...args)
-      let ret: Result<any>
-      if (result instanceof Promise) {
-        ret = right(await result)
-      } else {
-        ret = right(result)
+      const result = await Promise.resolve(fn(...args))
+      if (isEither(result)) {
+        return isRight(result) ? right(result.right) : left({
+          code: hasCode(result.left) && isErrorCode(result.left.code) ? result.left.code : E.RuntimeErrors,
+          message: hasMessage(result.left) ? result.left.message : null,
+          extra: result.left,
+        })
       }
-
-      if (isRight(ret)) {
-        const inner = ret.right
-        if (isEither(inner)) {
-          if (isRight(inner)) {
-            return right(inner.right)
-          } else {
-            const l = inner.left
-            let err: RpcError = {
-              code: hasCode(l) && isErrorCode(l.code) ? l.code : E.RuntimeErrors,
-              message: hasMessage(l) ? l.message : null,
-              extra: l,
-            }
-            return left(err)
-          }
-        } else {
-          return right(inner)
-        }
-      } else {
-        throw new Error("unreachable")
-      }
-
+      return right(result)
     } catch (e) {
       const err: RpcError = {
         code: E.RuntimeErrors,

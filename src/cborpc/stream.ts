@@ -32,13 +32,16 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
   if (typeof magic !== "number") {
     const err: RpcError = {
       code: E.BadType,
+      message: "magic number is not a number",
     }
     return left(err)
   }
+
   const values: number[] = Object.values(MagicNumbers)
   if (!values.includes(magic)) {
     const err: RpcError = {
       code: E.BadMagicNumber,
+      message: `magic number ${magic} is not in ${MagicNumbers}`,
     }
     return left(err)
   }
@@ -46,6 +49,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
   if (typeof msg_id !== "number") {
     const err: RpcError = {
       code: E.BadType,
+      message: "msg_id is not a number",
     }
     return left(err)
   }
@@ -54,6 +58,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
   if (!(typeof method === "string" || typeof method === "number")) {
     const err: RpcError = {
       code: E.BadType,
+      message: "method is not a string or number",
     }
     return left(err)
   }
@@ -61,6 +66,7 @@ function decodeRaw(data: ArrayBuffer): Result<CallMessage> {
   if (!Array.isArray(params)) {
     const err: RpcError = {
       code: E.BadType,
+      message: "params is not an array",
     }
     return left(err)
   }
@@ -179,7 +185,8 @@ class CborRpc {
     })
   }
 
-  public close() {
+  // https://www.totaltypescript.com/typescript-5-2-new-keyword-using
+  public [Symbol.dispose]() {
     this.sub?.unsubscribe()
     this.ws.close()
   }
