@@ -185,7 +185,7 @@ export class CborRpcActor {
     )
 
     this.sub = this.callObs.subscribe((msg: CallMessage) => {
-      this.logger.info(`callMsg`, msg)
+      this.logger.debug(`CallMessage`, msg)
       this.table.call(msg.method, msg.params)
         .then((result) => {
           if (isLeft(result)) {
