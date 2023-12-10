@@ -127,12 +127,12 @@ export class CborRpcActor {
   private logger: ReturnType<typeof pino>
   public table: FnTable
 
-  constructor(url: UrlProvider) {
+  constructor(url: UrlProvider, logger: pino.Logger | null = null) {
     this.ws = new RWebSocket(url)
     this.ws.binaryType = "arraybuffer"
     this.subject = new Subject()
-    this.logger = pino()
-    this.table = new FnTable()
+    this.logger = logger ?? pino({ level: "debug" })
+    this.table = new FnTable(this.logger)
 
     // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/message_event
     // If the message type is "text", then this field is a string.

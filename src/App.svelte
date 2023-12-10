@@ -79,13 +79,15 @@ onMount(() => {
 
   const url = import.meta.env.VITE_WS_ENDPOINT
   logger.info("Connecting to", url)
-  const rpc = new CborRpcActor(url)
+  rpc = new CborRpcActor(url)
   rpc.table.register("log", 0x01, (...args: any[]) => console.log(...args))
 })
 
 onDestroy(() => {
   if (rpc) {
     rpc.close()
+  } else {
+    logger.warn("can't find rpc")
   }
 })
 </script>

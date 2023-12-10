@@ -61,10 +61,10 @@ export type Result<T> = Either<RpcError, T>
 export const ListAllMethod = 0x69
 
 // a magic map for void return
-export const VoidOk = { 0: 1 } as const
+export const VoidOk = { "void": null } as const
 
 export function isErrorCode(code: number): code is ErrorCodeLiteral {
-  const codes:number[] = Object.values(E)
+  const codes: number[] = Object.values(E)
   if (codes.includes(code)) {
     return true
   } else {

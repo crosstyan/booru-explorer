@@ -1,9 +1,9 @@
 import { isLeft, isRight, left, right, asUnit } from "fp-ts/Either"
-import type { Either, Left, Right } from "fp-ts/Either"
 import uFuzzy from "@leeoniya/ufuzzy"
 import { E, ListAllMethod, isErrorCode } from "./errors"
 import { extractMsg, hasCode, hasMessage, isEither } from "./utils"
 import type { RpcError, Result } from "./errors"
+import pino from "pino"
 
 
 export interface RegisterOptions {
@@ -15,12 +15,14 @@ export class FnTable {
   private strMap: Record<string, Function> = {}
   private numStrMap: Record<number, string> = {}
   private uf: uFuzzy
-  constructor() {
+  private logger: pino.Logger
+  constructor(logger: pino.Logger | null = null) {
     this.strMap = {}
     this.numStrMap = {}
-    this.uf = new uFuzzy()
+    this.uf = new uFuzzy({ intraMode: 1, intraSub: 1, intraTrn: 1, intraDel: 1, intraIns: 2 })
+    this.logger = logger ?? pino()
 
-    this.register("listFns", ListAllMethod, this.listFns)
+    this.register("listFns", ListAllMethod, () => this.listFns())
   }
 
   public register(
@@ -88,11 +90,15 @@ export class FnTable {
     } else if (typeof fnIndex === 'string') {
       fn = this.strMap[fnIndex]
       if (fn === undefined) {
-        const [idxs] = this.uf.search(Object.keys(this.strMap), fnIndex)
+        const haystack = Object.keys(this.strMap)
+        const [idxs, info, order] = this.uf.search(haystack, fnIndex, 5, 1e3)
+        this.logger.debug({ fnIndex, haystack }, "search haystack")
+        this.logger.debug({ idxs, info, order }, "search result")
         if (idxs != null && idxs.length > 0) {
+          const name = haystack[idxs[0]]
           return left({
             code: E.InvalidMethod,
-            message: `function ${fnIndex} not found, did you mean ${idxs[0]}?`,
+            message: `function "${fnIndex}" not found, did you mean "${name}"?`,
           })
         }
       }
