@@ -1,8 +1,8 @@
-import { isLeft, isRight, left, right } from "fp-ts/Either"
+import { isLeft, isRight, left, right, asUnit } from "fp-ts/Either"
 import type { Either, Left, Right } from "fp-ts/Either"
 import uFuzzy from "@leeoniya/ufuzzy"
 import * as E from "./errors"
-import { extractMsg } from "./utils"
+import { extractMsg, hasCode, hasMessage, isEither } from "./utils"
 import type { RpcError, Result, Unit } from "./errors"
 
 
@@ -24,7 +24,7 @@ class FnTable {
   public register(
     fnStringIndex: string,
     fnNumberIndex: number,
-    fn: Function, option: Partial<RegisterOptions>): Result<Unit> {
+    fn: Function, option: Partial<RegisterOptions>): Result<void> {
     let defaultOption: RegisterOptions = {
       overwriteStringIndex: false,
       overwriteNumberIndex: false,
@@ -47,10 +47,10 @@ class FnTable {
 
     this.numStrMap[fnNumberIndex] = fnStringIndex
 
-    return right({})
+    return asUnit(right({}))
   }
 
-  public unregister(fnIndex: string | number): Result<Unit> {
+  public unregister(fnIndex: string | number): Result<void> {
     if (typeof fnIndex === "number") {
       const fnStrIndex = this.numStrMap[fnIndex]
       if (fnStrIndex === undefined) {
@@ -73,11 +73,12 @@ class FnTable {
     } else {
       throw new Error("invalid fnIndex type")
     }
-    return right({})
+    return asUnit(right({}))
   }
 
-  public call(fnIndex: string | number, args: any[]): Result<any> {
+  public async call(fnIndex: string | number, args: any[]): Promise<Result<any>> {
     let fn: Function | undefined
+
     if (typeof fnIndex === "number") {
       const fnStrIndex = this.numStrMap[fnIndex]
       if (fnStrIndex === undefined) {
@@ -109,8 +110,36 @@ class FnTable {
     }
 
     try {
+
       const result = fn(...args)
-      return right(result)
+      let ret: Result<any>
+      if (result instanceof Promise) {
+        ret = right(await result)
+      } else {
+        ret = right(result)
+      }
+
+      if (isRight(ret)) {
+        const inner = ret.right
+        if (isEither(inner)) {
+          if (isRight(inner)) {
+            return right(inner.right)
+          } else {
+            const l = inner.left
+            let err: RpcError = {
+              code: hasCode(l) ? l.code : E.RuntimeErrors,
+              message: hasMessage(l) ? l.message : null,
+              extra: l,
+            }
+            return left(err)
+          }
+        } else {
+          return right(inner)
+        }
+      } else {
+        throw new Error("unreachable")
+      }
+
     } catch (e) {
       const err: RpcError = {
         code: E.RuntimeErrors,
@@ -118,5 +147,18 @@ class FnTable {
       }
       return left(err)
     }
+  }
+
+  /**
+   * @todo memoize it as long as the table is not changed
+   */
+  public listFns(): Record<string, number> {
+    const result: Record<string, number> = {}
+    Object.keys(this.numStrMap).forEach((key) => {
+      const k = parseInt(key)
+      const v = this.numStrMap[k]
+      result[v] = k
+    })
+    return result
   }
 }

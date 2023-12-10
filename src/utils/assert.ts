@@ -20,6 +20,10 @@ export function assertDefined<T>(o: T | null | undefined): asserts o is T {
     }
 }
 
+export function assertType<T>(o: any): asserts o is T {
+    // pure assertion
+}
+
 /**
  * Unwraps the given option.
  */
