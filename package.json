@@ -22,8 +22,11 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
+    "@leeoniya/ufuzzy": "^1.0.13",
+    "cbor-redux": "^1.0.0",
     "fp-ts": "^2.16.1",
     "litegraph.js": "^0.7.14",
+    "reconnecting-websocket": "^4.4.0",
     "rxjs": "^7.8.1"
   }
 }

@@ -1,8 +1,9 @@
 <script lang="ts">
 // https://github.com/comfyanonymous/ComfyUI/blob/eccc9e64a631bb7ec02d61dbc6bf6c3ffefe96e4/web/scripts/ui.js#L610-L793
 // I could certainly improve this
-import { onMount } from "svelte"
+import { onMount, onDestroy } from "svelte"
 import { assertDefined } from "../utils/assert"
+import RWebSocket from "reconnecting-websocket"
 
 interface Position {
   x: number
@@ -16,6 +17,7 @@ export let themeColorBg: string = "#353535"
 export let themeColorText: string = "#ffffff"
 export let savePos: boolean = true
 let moduleSelf: HTMLElement | null = null
+let resizeObserver: ResizeObserver | null = null
 let posDiffX = 0
 let posDiffY = 0
 let posStartX = 0
@@ -76,20 +78,17 @@ function restorePos() {
   }
 }
 
-function enableDragElement(dragEl: HTMLElement) {
-  const handle = dragEl.getElementsByClassName("drag-handle")[0] as HTMLElement
+function enableDragElement(el: HTMLElement) {
+  const handle = el.getElementsByClassName("drag-handle")[0] as
+    | HTMLElement
+    | undefined
   if (handle) {
     // if present, the handle is where you move the DIV from:
     handle.onmousedown = dragMouseDown
   } else {
     // otherwise, move the DIV from anywhere inside the DIV:
-    dragEl.onmousedown = dragMouseDown
+    el.onmousedown = dragMouseDown
   }
-
-  // When the element resizes (e.g. view queue) ensure it is still in the windows bounds
-  const resizeObserver = new ResizeObserver(() => {
-    ensureInBounds()
-  }).observe(dragEl)
 
   function dragMouseDown(e: MouseEvent) {
     e.preventDefault()
@@ -104,7 +103,7 @@ function enableDragElement(dragEl: HTMLElement) {
   function elementDrag(e: MouseEvent) {
     e.preventDefault()
 
-    dragEl.classList.add(MenuPositionDragClassName)
+    el.classList.add(MenuPositionDragClassName)
 
     // calculate the new cursor position:
     posDiffX = e.clientX - posStartX
@@ -113,20 +112,16 @@ function enableDragElement(dragEl: HTMLElement) {
     posStartY = e.clientY
 
     newPosX = Math.min(
-      document.body.clientWidth - dragEl.clientWidth,
-      Math.max(0, dragEl.offsetLeft + posDiffX),
+      document.body.clientWidth - el.clientWidth,
+      Math.max(0, el.offsetLeft + posDiffX),
     )
     newPosY = Math.min(
-      document.body.clientHeight - dragEl.clientHeight,
-      Math.max(0, dragEl.offsetTop + posDiffY),
+      document.body.clientHeight - el.clientHeight,
+      Math.max(0, el.offsetTop + posDiffY),
     )
 
     positionElement()
   }
-
-  window.addEventListener("resize", () => {
-    ensureInBounds()
-  })
 
   function closeDragElement() {
     document.onmouseup = null
@@ -137,9 +132,23 @@ function enableDragElement(dragEl: HTMLElement) {
 onMount(() => {
   if (moduleSelf) {
     enableDragElement(moduleSelf)
+    // When the element resizes (e.g. view queue) ensure it is still in the windows bounds
+    resizeObserver = new ResizeObserver(() => {
+      ensureInBounds()
+    })
+    resizeObserver.observe(moduleSelf)
+    window.addEventListener("resize", () => {
+      ensureInBounds()
+    })
     if (savePos) {
       restorePos()
     }
+  }
+})
+
+onDestroy(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
   }
 })
 </script>
