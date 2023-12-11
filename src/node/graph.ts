@@ -4,9 +4,6 @@ import {
   LiteGraph,
   LGraphNode,
 } from "litegraph.js"
-import type { IButtonWidget, IComboWidget, INumberWidget, ISliderWidget } from "litegraph.js"
-
-export type IWidgetType = IButtonWidget | INumberWidget | ISliderWidget | INumberWidget | IComboWidget
 
 export class ImageFrame extends LGraphNode {
   public static readonly nodeClass = "Graph"
@@ -18,6 +15,11 @@ export class ImageFrame extends LGraphNode {
   url: string = ""
   title: string = "Image Frame"
   img: null | HTMLImageElement = null
+
+  /**
+   * if true, the aspect ratio of the image is maintained when resizing the node
+   * otherwise, a black background is used to pad the image
+   */
   isFixedAspectRatio: boolean = true
 
   static register() {
@@ -142,7 +144,9 @@ export class ImageFrame extends LGraphNode {
     })
   }
 
-  // this should be overriden but the type declaration is wrong
+  /**
+   * @override
+   */
   onDropFile(file: Blob | MediaSource): void {
     if (this._url) {
       URL.revokeObjectURL(this._url)
@@ -152,9 +156,10 @@ export class ImageFrame extends LGraphNode {
     this.loadImage(this._url, (img) => this.resize(img))
   }
 
-  // https://github.com/jagenjo/litegraph.js/issues/129
-  // resize preserving aspect ratio
-  // not in the docs or type declarations as well
+  /**
+   * @override
+   * @sa https://github.com/jagenjo/litegraph.js/issues/129
+   */
   onResize(size: [number, number]): void {
     if (this.isFixedAspectRatio) {
       if (this.img) {
@@ -166,4 +171,9 @@ export class ImageFrame extends LGraphNode {
       // do nothing
     }
   }
+
+  /**
+   * @override
+   */
+  onDblClick(e: MouseEvent, pos: [number, number]): void { }
 }

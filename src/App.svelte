@@ -86,16 +86,10 @@ onMount(() => {
   const node = LiteGraph.createNode(ImageFrame.type) as ImageFrame
   node.pos = [200, 200]
   node.url = "https://picsum.photos/200/300"
-  // node.loadImage("https://picsum.photos/200/300", (img) => {
-  //   node.size = [img.width, img.height]
-  // })
   graph.add(node)
 
   // https://github.com/jagenjo/litegraph.js/blob/master/src/nodes/base.js
   // some basic nodes implementation
-  const w = LiteGraph.createNode("basic/console")
-  graph.add(w)
-
   const url = import.meta.env.VITE_WS_ENDPOINT
   logger.info("Connecting to", url)
   rpc = new CborRpcActor(url)
