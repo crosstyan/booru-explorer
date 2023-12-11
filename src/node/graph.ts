@@ -1,4 +1,10 @@
-import { LGraph, LGraphCanvas, LiteGraph, LGraphNode, type IWidget, type IButtonWidget, type INumberWidget, type ISliderWidget, type IComboWidget } from "litegraph.js"
+import {
+  LGraph,
+  LGraphCanvas,
+  LiteGraph,
+  LGraphNode,
+} from "litegraph.js"
+import type { IButtonWidget, IComboWidget, INumberWidget, ISliderWidget } from "litegraph.js"
 
 export type IWidgetType = IButtonWidget | INumberWidget | ISliderWidget | INumberWidget | IComboWidget
 
@@ -102,5 +108,16 @@ export class ImageFrame extends LGraphNode {
     this._url = URL.createObjectURL(file)
     this.url = this._url
     this.loadImage(this._url, (img) => this.resize(img))
+  }
+
+  // https://github.com/jagenjo/litegraph.js/issues/129
+  // resize preserving aspect ratio
+  // not in the docs or type declarations as well
+  onResize(size: [number, number]): void {
+    if (this.img) {
+      const ar = this.img.height / this.img.width
+      const [w, h] = size
+      this.size = [w, w * ar]
+    }
   }
 }
