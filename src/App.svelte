@@ -11,6 +11,7 @@ import CborRpcActor from "./cborpc"
 import ExampleNode from "./node/example"
 import Menu from "./lib/menu.svelte"
 import { right } from "fp-ts/lib/Either"
+import { ImageFrame } from "./node/graph"
 
 const logger = pino()
 let rpc: CborRpcActor | null = null
@@ -26,7 +27,15 @@ function resizeCanvas(canvas_el: HTMLCanvasElement, lg_canvas: LGraphCanvas) {
   lg_canvas.draw(true, true)
 }
 
+function configureLG() {
+  LiteGraph.debug = true
+  LiteGraph.catch_exceptions = true
+  LiteGraph.throw_errors = true
+  LiteGraph.allow_scripts = true
+}
+
 onMount(() => {
+  configureLG()
   const main = document.getElementById("main-main")
   assertDefined(main)
   const canvasEl = document.createElement("canvas")
@@ -73,10 +82,19 @@ onMount(() => {
 
   lg_canvas.renderInfo = renderInfo
 
-  ExampleNode.register()
-  const node = LiteGraph.createNode(ExampleNode.type) as ExampleNode
+  ImageFrame.register()
+  const node = LiteGraph.createNode(ImageFrame.type) as ImageFrame
   node.pos = [200, 200]
+  node.url = "https://picsum.photos/200/300"
+  // node.loadImage("https://picsum.photos/200/300", (img) => {
+  //   node.size = [img.width, img.height]
+  // })
   graph.add(node)
+
+  // https://github.com/jagenjo/litegraph.js/blob/master/src/nodes/base.js
+  // some basic nodes implementation
+  const w = LiteGraph.createNode("basic/console")
+  graph.add(w)
 
   const url = import.meta.env.VITE_WS_ENDPOINT
   logger.info("Connecting to", url)
@@ -90,7 +108,6 @@ onMount(() => {
   rpc.table.register("eval", 0x99, (code: string) => {
     return eval(code)
   })
-  rpc.table.register("result", 0x03, () => right("ok"))
 })
 
 onDestroy(() => {

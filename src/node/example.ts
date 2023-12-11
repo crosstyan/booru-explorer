@@ -1,9 +1,9 @@
 import { LGraph, LGraphCanvas, LiteGraph, LGraphNode } from "litegraph.js"
 
 export default class Example extends LGraphNode {
-  public static readonly className = "basic"
-  public static readonly subClassName = "Example"
-  public static readonly type = `${Example.className}/${Example.subClassName}`
+  public static readonly nodeClass = "basic"
+  public static readonly subNodeClass = "Example"
+  public static readonly type = `${Example.nodeClass}/${Example.subNodeClass}`
 
   static register() {
     LiteGraph.registerNodeType(this.type, Example)
