@@ -69,7 +69,8 @@ export class ImageFrame extends LGraphNode {
       }
       const blob = await result.blob()
       const url = URL.createObjectURL(blob)
-      this.img = document.createElement("img")
+      // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Using_images
+      this.img = new Image()
       this.img.src = url
       this.boxcolor = "#F95"
       this.img.onload = (ev: Event) => {
@@ -80,7 +81,7 @@ export class ImageFrame extends LGraphNode {
         }
         this.dirty = true
         this.boxcolor = "#9F9"
-        this.setDirtyCanvas(true, true)
+        this.setDirtyCanvas(true, false)
         resolve()
       }
       this.img.onerror = function () {
