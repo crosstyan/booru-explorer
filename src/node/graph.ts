@@ -13,11 +13,12 @@ export class ImageFrame extends LGraphNode {
   public static readonly subNodeClass = "ImageFrame"
   public static readonly type = `${ImageFrame.nodeClass}/${ImageFrame.subNodeClass}`
 
-  _url: string = ""
+  private _url: string = ""
+  private dirty: boolean = false
   url: string = ""
   title: string = "Image Frame"
   img: null | HTMLImageElement = null
-  dirty: boolean = false
+  isFixedAspectRatio: boolean = true
 
   static register() {
     LiteGraph.registerNodeType(this.type, ImageFrame)
@@ -39,14 +40,6 @@ export class ImageFrame extends LGraphNode {
       this.loadImage(this.url, (img) => this.resize(img))
     }
   }
-  override onDrawBackground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
-    if (this.flags.collapsed) {
-      return
-    }
-    if (this.img && this.size[0] > 5 && this.size[1] > 5 && this.img.width) {
-      ctx.drawImage(this.img, 0, 0, this.size[0], this.size[1])
-    }
-  }
 
   override onExecute(): void {
     if (!this.img) {
@@ -59,6 +52,55 @@ export class ImageFrame extends LGraphNode {
     }
     if (this.img && this.dirty) {
       this.dirty = false
+    }
+  }
+
+  /**
+   * Here's where the magic happens
+   */
+  override onDrawBackground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
+    if (this.flags.collapsed) {
+      return
+    }
+    if (!this.img) {
+      return
+    }
+    const [iw, ih] = [this.img.width, this.img.height]
+    const [cw, ch] = this.size
+    if (this.isFixedAspectRatio) {
+      if (cw > 5 && ch > 5) {
+        ctx.drawImage(this.img, 0, 0, cw, ch)
+      }
+    } else {
+      // try to maintain aspect ratio
+      // padding with black
+      // Calculate the aspect ratios of the image and the canvas
+      const imageAspectRatio = iw / ih
+      const canvasAspectRatio = cw / ch
+
+      let renderWidth, renderHeight, offsetX, offsetY
+
+      // If image's aspect ratio is less than the canvas's aspect ratio
+      if (imageAspectRatio < canvasAspectRatio) {
+        // Fit to height and maintain aspect ratio
+        renderHeight = ch
+        renderWidth = renderHeight * imageAspectRatio
+        offsetX = (cw - renderWidth) / 2 // center horizontally
+        offsetY = 0 // align top
+      } else {
+        // Fit to width and maintain aspect ratio
+        renderWidth = cw
+        renderHeight = renderWidth / imageAspectRatio
+        offsetX = 0 // align left
+        offsetY = (ch - renderHeight) / 2 // center vertically
+      }
+
+      // Fill canvas with black to pad the image
+      ctx.fillStyle = "black"
+      ctx.fillRect(0, 0, cw, ch)
+
+      // Draw the image on the canvas, centered and maintaining aspect ratio
+      ctx.drawImage(this.img, offsetX, offsetY, renderWidth, renderHeight)
     }
   }
 
@@ -114,10 +156,14 @@ export class ImageFrame extends LGraphNode {
   // resize preserving aspect ratio
   // not in the docs or type declarations as well
   onResize(size: [number, number]): void {
-    if (this.img) {
-      const ar = this.img.height / this.img.width
-      const [w, h] = size
-      this.size = [w, w * ar]
+    if (this.isFixedAspectRatio) {
+      if (this.img) {
+        const ar = this.img.height / this.img.width
+        const [w, h] = size
+        this.size = [w, w * ar]
+      }
+    } else {
+      // do nothing
     }
   }
 }
