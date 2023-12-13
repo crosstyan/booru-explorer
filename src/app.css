@@ -1,10 +1,6 @@
 #app {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-}
-
-a {
-  text-decoration: inherit;
 }
 
 /* this gets exported as style.css and can be used for the default theming */
@@ -112,6 +108,18 @@ a {
   transform-origin: 0 0;
   z-index: 2;
   pointer-events: none;
+}
+
+/**
+ * generally a hack to make the viewport render more
+ * than 100%. It's meaningful since viewport just a
+ * transformed container. 
+ * 
+ * Not sure whether a performance issue will happen
+ */
+.svelte-flow__viewport {
+  width: 500% !important;
+  height: 500% !important;
 }
 .svelte-flow__renderer {
   z-index: 4;

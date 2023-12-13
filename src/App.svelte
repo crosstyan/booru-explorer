@@ -18,25 +18,33 @@ import {
   MiniMap,
   Panel,
   type ColorMode,
+  type Node,
+  type Edge,
 } from "@xyflow/svelte"
-import ColorPickerNode from "./lib/ColorPickerNode.svelte"
 
+import Gallery from "./lib/Gallery.svelte"
+
+// https://svelte.dev/blog/runes
 const logger = pino()
 let rpc: CborRpcActor | null = null
 
-const nodes = writable([
-  {
-    id: "1",
-    type: "colorPicker",
-    data: { color: writable("#ff4000") },
-    position: { x: 0, y: 0 },
-  },
+const initNodes = writable<Node[]>([
+  (() => {
+    const node:Node = {
+      id: "1",
+      type: "gallery",
+      data: {
+        color: writable("#ff4000"),
+      },
+      position: { x: 0, y: 0 },
+    }
+    return node
+  })(),
 ])
-
-const edges = writable([])
+const initEdges = writable<Edge[]>([])
 
 const nodeTypes = {
-  colorPicker: ColorPickerNode,
+  gallery: Gallery,
 }
 let colorMode: ColorMode = "system"
 
@@ -63,22 +71,21 @@ onDestroy(() => {
 
 <div id="wrapper">
   <SvelteFlow
-    {nodes}
-    {edges}
+    nodes={initNodes}
+    edges={initEdges}
     {nodeTypes}
     {colorMode}
     fitView
     attributionPosition="bottom-right"
   >
-    <Controls />
     <Background />
-    <Panel>
+    <!-- <Panel>
       <select bind:value={colorMode} data-testid="colormode-select">
         <option value="light">light</option>
         <option value="dark">dark</option>
         <option value="system">system</option>
       </select>
-    </Panel>
+    </Panel> -->
   </SvelteFlow>
 </div>
 
