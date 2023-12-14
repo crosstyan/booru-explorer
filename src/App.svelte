@@ -79,13 +79,6 @@ onDestroy(() => {
     attributionPosition="bottom-right"
   >
     <Background />
-    <!-- <Panel>
-      <select bind:value={colorMode} data-testid="colormode-select">
-        <option value="light">light</option>
-        <option value="dark">dark</option>
-        <option value="system">system</option>
-      </select>
-    </Panel> -->
   </SvelteFlow>
 </div>
 
