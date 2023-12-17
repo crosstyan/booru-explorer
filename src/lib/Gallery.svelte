@@ -200,7 +200,7 @@ const removeImg = () => {
 .gallery-frame {
   min-width: 8rem;
   min-height: 4rem;
-  max-width: 100rem;
+  max-width: 40rem;
   padding: 1rem;
   background-color: var(--node-background-color-default);
   color: var(--node-color-default);
