@@ -7,6 +7,9 @@ import pino from "pino"
 import { List } from "immutable"
 import Masonry from "svelte-bricks"
 import { cons } from "fp-ts/lib/ReadonlyNonEmptyArray"
+import RWebSocket from "reconnecting-websocket"
+import { randomIntRange } from "../utils"
+import { decode_response, encode_request, type FileRequest } from "../file"
 
 // https://github.com/sveltejs/svelte/issues/192#issuecomment-1288198489
 // https://svelteflow.dev/examples/styling/tailwind
@@ -31,9 +34,6 @@ interface UrlEntry {
   id: number
 }
 
-const randomIntRange = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1) + min)
-
 const node_id_key = "svelteflow__node_id"
 const nodeId = getContext<string>(node_id_key)
 const logger = pino({ name: "Gallery" })
@@ -54,6 +54,11 @@ const fetchNewImg = async () => {
     }
   })
   return promise
+}
+
+interface SimpleImage {
+  id: number
+  url: string
 }
 
 interface Post {
@@ -157,21 +162,58 @@ const rawRows2post = (raw: any[]) => {
 }
 
 const [minColWidth, maxColWidth, gap] = [50, 200, 5]
-let imgs: List<Post> = List()
+let imgs: List<SimpleImage> = List()
 $: items = [...imgs]
 
-const addImg = async () => {
-  const posts = (await fetchRandomPosts()) as RawResponse
-  const newImgs = posts.rows.map(rawRows2post)
-  imgs = imgs.concat(newImgs)
-  console.log(imgs)
-}
-
+const UINT16_MAX = 65535
 onMount(() => {
   ;(async () => {
-    const raw = (await fetchRandomPosts()) as RawResponse
-    const posts = raw.rows.map(rawRows2post)
-    imgs = List(posts)
+    const ws = new RWebSocket(import.meta.env.VITE_FILE_WS_ENDPOINT)
+    let msg_map = new Map<number, ArrayBuffer>()
+    logger.info("Connecting to", import.meta.env.VITE_FILE_WS_ENDPOINT)
+    ws.binaryType = "arraybuffer"
+    ws.addEventListener("open", () => {
+      const req: FileRequest = {
+        sid: randomIntRange(0, UINT16_MAX),
+        path: ".",
+        implicit_read: false,
+      }
+      ws.send(encode_request(req))
+    })
+    const listenImg = (ev:MessageEvent<any>) => {
+      const data = ev.data as ArrayBuffer
+      const resp = decode_response(data)
+      if (resp.content instanceof Uint8Array) {
+        if (resp.file_path.includes("webp")) {
+          const mime_type = "image/webp"
+          const blob = new Blob([resp.content], { type: mime_type })
+          const url = URL.createObjectURL(blob)
+          const last = imgs.last()
+          const last_id = last?.id ?? 0
+          imgs = imgs.push({ id: last_id + 1, url })
+        }
+      }
+    }
+    const listenDirs = (ev:MessageEvent<any>) => {
+      const data = ev.data as ArrayBuffer
+      const resp = decode_response(data)
+      if (resp.filenames !== undefined){
+        const folders = resp.filenames?.filter(([_, is_dir]) => is_dir).map(([name, _]) => name)
+        if (folders !== undefined) {
+          const folder = folders[randomIntRange(0, folders.length)]
+          logger.info("requesting", folder)
+          const req: FileRequest = {
+            sid: randomIntRange(0, UINT16_MAX),
+            path: folder,
+            implicit_read: true,
+          }
+          ws.send(encode_request(req))
+          ws.removeEventListener("message", listenDirs)
+          ws.addEventListener("message", listenImg)
+        }
+      }
+    }
+    ws.addEventListener("message", listenDirs)
   })()
 })
 
@@ -187,11 +229,11 @@ const removeImg = () => {
 <div class="gallery-frame">
   <Masonry let:item animate={false} {items} {minColWidth} {maxColWidth} {gap}>
     <div class="flex-auto">
-      <img src={item.preview_file_url} />
+      <img src={item.url} />
     </div>
   </Masonry>
   <span class="tools absolute top-2 left-2 flex align-middle">
-    <button class="float-btn" on:click={addImg}>+</button>
+    <button class="float-btn" on:click={() => {}}>+</button>
     <button class="float-btn" on:click={removeImg}>-</button>
   </span>
 </div>

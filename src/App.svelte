@@ -9,7 +9,6 @@ import pino from "pino"
 import CborRpcActor from "./cborpc"
 import { right } from "fp-ts/lib/Either"
 import { writable } from "svelte/store"
-import { CBOR } from "cbor-redux"
 import {
   SvelteFlow,
   Controls,
@@ -50,41 +49,6 @@ const nodeTypes = {
 }
 let colorMode: ColorMode = "system"
 
-interface FileResponse {
-  sid: number
-  request_path: string
-  file_path: string
-  // error code, error message (optional)
-  error: [number, string | null] | null
-  // filenames, is_dir
-  filenames: Array<[string, boolean]> | null
-  content: Uint8Array | null
-}
-
-interface FileRequest {
-  sid: number
-  path: string
-  implicit_read: boolean
-}
-
-const encode_request = (request:FileRequest) => {
-  const arr: [number, string, boolean] = [request.sid, request.path, request.implicit_read]
-  const buf = CBOR.encode(arr)
-  return buf
-}
-
-const decode_response = (buf: ArrayBuffer): FileResponse => {
-  const arr = CBOR.decode(buf)
-  const response: FileResponse = {
-    sid: arr[0],
-    request_path: arr[1],
-    file_path: arr[2],
-    error: arr[3],
-    filenames: arr[4],
-    content: arr[5],
-  }
-  return response
-}
 
 onMount(() => {
   // https://github.com/jagenjo/litegraph.js/blob/master/src/nodes/base.js
@@ -96,24 +60,6 @@ onMount(() => {
   rpc.table.register("eval", 0x99, (code: string) => {
     return eval(code)
   })
-
-  const file_ws = new ReconnectingWebSocket(import.meta.env.VITE_FILE_WS_ENDPOINT)
-  file_ws.binaryType = "arraybuffer"
-  file_ws.addEventListener("open", () => {
-    logger.info("file_ws open")
-    const request: FileRequest = {
-      sid: 1,
-      path: "/z282g",
-      implicit_read: true,
-    }
-    const buf = encode_request(request)
-    file_ws.send(buf)
-  })
-  file_ws.onmessage = (ev) => {
-    const data = ev.data
-    const result = decode_response(data)
-    logger.info("file response", result)
-  }
 })
 
 onDestroy(() => {
