@@ -77,6 +77,8 @@ onDestroy(() => {
     edges={initEdges}
     {nodeTypes}
     {colorMode}
+    maxZoom={6}
+    minZoom={0.5}
     fitView
     attributionPosition="bottom-right"
   >

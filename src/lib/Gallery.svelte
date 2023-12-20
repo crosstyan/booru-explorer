@@ -161,6 +161,7 @@ const rawRows2post = (raw: any[]) => {
   } as Post
 }
 
+let artist_name:string = ""
 const [minColWidth, maxColWidth, gap] = [50, 200, 5]
 let imgs: List<SimpleImage> = List()
 $: items = [...imgs]
@@ -201,6 +202,7 @@ onMount(() => {
         const folders = resp.filenames?.filter(([_, is_dir]) => is_dir).map(([name, _]) => name)
         if (folders !== undefined) {
           const folder = folders[randomIntRange(0, folders.length)]
+          artist_name = folder
           logger.info("requesting", folder)
           const req: FileRequest = {
             sid: randomIntRange(0, UINT16_MAX),
@@ -227,12 +229,13 @@ const removeImg = () => {
 </script>
 
 <div class="gallery-frame">
+  <h1>{artist_name}</h1>
   <Masonry let:item animate={false} {items} {minColWidth} {maxColWidth} {gap}>
     <div class="flex-auto">
       <img src={item.url} />
     </div>
   </Masonry>
-  <span class="tools absolute top-2 left-2 flex align-middle">
+  <span class="tools absolute top-2 right-2 flex align-middle">
     <button class="float-btn" on:click={() => {}}>+</button>
     <button class="float-btn" on:click={removeImg}>-</button>
   </span>
